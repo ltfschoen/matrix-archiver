@@ -92,3 +92,5 @@ TAIL_N=100 python3 scripts/update.py
 open ./archive/_21ddsEwXlCWnreEGuqXZ_3Apolkadot.io/index.html
 # #jam:polkadot.io - archive
 open ./archive/_21wBOJlzaOULZOALhaRh_3Apolkadot.io/index.html
+# JAM Implementers room - archive
+# FIXME - unable to archive since that room is encrypted _21KKOmuUpvYKPcniwOzw_3Amatrix.org

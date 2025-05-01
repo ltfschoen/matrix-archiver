@@ -146,36 +146,36 @@ def archive(room:str):
     events=sorted(originals.values(),key=when)
     if not events: return None
 
-    # Generate JSON outputs
-    messages = []
-    detailed_messages = []
+    # # Generate JSON outputs
+    # messages = []
+    # detailed_messages = []
     
-    for ev in events:
-        body = ev["content"].get("body", "").strip()
-        if not body:  # Skip empty messages
-            continue
+    # for ev in events:
+    #     body = ev["content"].get("body", "").strip()
+    #     if not body:  # Skip empty messages
+    #         continue
             
-        # Add to simple messages array
-        messages.append(body)
+    #     # Add to simple messages array
+    #     messages.append(body)
         
-        # Add to detailed messages array
-        msg_obj = {
-            "date": when(ev).isoformat(),
-            "username": uname(ev["sender"]),
-            "message": body,
-        }
+    #     # Add to detailed messages array
+    #     msg_obj = {
+    #         "date": when(ev).isoformat(),
+    #         "username": uname(ev["sender"]),
+    #         "message": body,
+    #     }
         
-        if DETECT_QUESTIONS:
-            msg_obj["is_question"] = is_question(body)
+    #     if DETECT_QUESTIONS:
+    #         msg_obj["is_question"] = is_question(body)
             
-        detailed_messages.append(msg_obj)
+    #     detailed_messages.append(msg_obj)
     
-    # Save JSON outputs
-    json_simple = {"data": messages}
-    json_detailed = {"data": detailed_messages}
+    # # Save JSON outputs
+    # json_simple = {"data": messages}
+    # json_detailed = {"data": detailed_messages}
     
-    (rdir/"messages.json").write_text(json.dumps(json_simple, indent=2), encoding="utf-8")
-    (rdir/"messages_detailed.json").write_text(json.dumps(json_detailed, indent=2), encoding="utf-8")
+    # (rdir/"messages.json").write_text(json.dumps(json_simple, indent=2), encoding="utf-8")
+    # (rdir/"messages_detailed.json").write_text(json.dumps(json_detailed, indent=2), encoding="utf-8")
     
     # 1-level threads
     byid,threads={e["event_id"]:e for e in events},collections.defaultdict(list)
