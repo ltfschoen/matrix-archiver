@@ -94,3 +94,13 @@ open ./archive/_21ddsEwXlCWnreEGuqXZ_3Apolkadot.io/index.html
 open ./archive/_21wBOJlzaOULZOALhaRh_3Apolkadot.io/index.html
 # JAM Implementers room - archive
 # FIXME - unable to archive since that room is encrypted _21KKOmuUpvYKPcniwOzw_3Amatrix.org
+```
+
+---
+
+Debug
+-------------------
+
+```sh
+matrix-commander --credentials mc_creds.json --store store --room "#jamimplementers:matrix.org" --debug
+```

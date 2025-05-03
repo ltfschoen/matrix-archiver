@@ -38,6 +38,11 @@ LISTEN_MODE = os.getenv("LISTEN_MODE","tail").lower()       # all|tail|once
 TAIL_N      = os.getenv("TAIL_N","10000")
 TIMEOUT_S   = int(os.getenv("TIMEOUT",300))
 
+print("Loaded rooms:", ROOMS)
+print("HS:", HS)
+print("USER_ID:", USER_ID)
+print("TOKEN exists:", bool(TOKEN))
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", stream=sys.stderr)
 os.environ["NIO_LOG_LEVEL"] = "error"
 
