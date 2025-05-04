@@ -11,16 +11,37 @@ import os, sys, json, subprocess, shlex, hashlib, colorsys, logging, re, html
 import collections, pathlib, urllib.parse
 from   datetime   import datetime, timezone
 
+# Load .env file if it exists
+env_path = pathlib.Path(__file__).parent.parent / '.env'
+if env_path.exists():
+    with open(env_path) as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                key, value = line.strip().split('=', 1)
+                os.environ[key] = value
+
 # ══════════════════════════  CONFIG  ═══════════════════════════════════
-HS, USER_ID, TOKEN = os.environ["MATRIX_HS"], os.environ["MATRIX_USER"], os.environ["MATRIX_TOKEN"]
+HS = os.getenv("MATRIX_HS")
+USER_ID = os.getenv("MATRIX_USER")
+TOKEN = os.getenv("MATRIX_TOKEN")
+
+if not all([HS, USER_ID, TOKEN]):
+    sys.exit("Error: Required environment variables MATRIX_HS, MATRIX_USER, and MATRIX_TOKEN must be set in .env file")
+
+DETECT_QUESTIONS = os.getenv("DETECT_QUESTIONS", "true").lower() == "true"
 
 ROOMS = [r for r in re.split(r"[,\s]+", os.getenv("MATRIX_ROOMS") or os.getenv("MATRIX_ROOM","")) if r]
 if not ROOMS:
     sys.exit("‼  MATRIX_ROOMS is empty")
 
-LISTEN_MODE = os.getenv("LISTEN_MODE","all").lower()       # all|tail|once
+LISTEN_MODE = os.getenv("LISTEN_MODE","tail").lower()       # all|tail|once
 TAIL_N      = os.getenv("TAIL_N","10000")
-TIMEOUT_S   = int(os.getenv("TIMEOUT",20))
+TIMEOUT_S   = int(os.getenv("TIMEOUT",300))
+
+print("Loaded rooms:", ROOMS)
+print("HS:", HS)
+print("USER_ID:", USER_ID)
+print("TOKEN exists:", bool(TOKEN))
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", stream=sys.stderr)
 os.environ["NIO_LOG_LEVEL"] = "error"
@@ -54,6 +75,10 @@ def pastel(uid:str)->str:
     h,l,s=int.from_bytes(d[:2],"big")/65535, .55+(d[2]/255-.5)*.25, .55+(d[3]/255-.5)*.25
     r,g,b=colorsys.hls_to_rgb(h,l,s)
     return f"#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}"
+
+def is_question(text: str) -> bool:
+    """Check if a message ends with a question mark."""
+    return text.strip().endswith("?")
 
 # md-ish post-processing  ──────────────────────────────────────────────
 _re_mdlink = re.compile(r'\[([^\]]+?)\]\((https?://[^\s)]+)\)')
@@ -123,9 +148,40 @@ def archive(room:str):
             new_body=rep["content"].get("m.new_content",{}).get("body") or rep["content"].get("body","")
             msg["content"]["body"]=new_body; msg["_edited"]=True
 
-    events=sorted(originals.values(),key=when);  # nothing? bail
+    events=sorted(originals.values(),key=when)
     if not events: return None
 
+    # # Generate JSON outputs
+    # messages = []
+    # detailed_messages = []
+    
+    # for ev in events:
+    #     body = ev["content"].get("body", "").strip()
+    #     if not body:  # Skip empty messages
+    #         continue
+            
+    #     # Add to simple messages array
+    #     messages.append(body)
+        
+    #     # Add to detailed messages array
+    #     msg_obj = {
+    #         "date": when(ev).isoformat(),
+    #         "username": uname(ev["sender"]),
+    #         "message": body,
+    #     }
+        
+    #     if DETECT_QUESTIONS:
+    #         msg_obj["is_question"] = is_question(body)
+            
+    #     detailed_messages.append(msg_obj)
+    
+    # # Save JSON outputs
+    # json_simple = {"data": messages}
+    # json_detailed = {"data": detailed_messages}
+    
+    # (rdir/"messages.json").write_text(json.dumps(json_simple, indent=2), encoding="utf-8")
+    # (rdir/"messages_detailed.json").write_text(json.dumps(json_detailed, indent=2), encoding="utf-8")
+    
     # 1-level threads
     byid,threads={e["event_id"]:e for e in events},collections.defaultdict(list)
     for e in events:
@@ -221,4 +277,3 @@ a:hover{{color:{accent_hover}}}
 </ul>"""
 pathlib.Path("index.html").write_text(landing, encoding="utf-8")
 logging.info("root index.html regenerated ✓")
-
